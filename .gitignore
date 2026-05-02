@@ -1,0 +1,17 @@
+﻿HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+.vscode/
+*.code-workspace
+.classpath
+.project
+.settings/
+
+imp/
+application-local.yml
+
+.DS_Store
+Thumbs.db
