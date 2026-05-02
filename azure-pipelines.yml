@@ -1,0 +1,54 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  DOCKER_HUB_USERNAME: ssp102
+  IMAGE_NAME: industrial-equipment-api
+  IMAGE_TAG: $(Build.BuildId)
+
+stages:
+  - stage: Build
+    displayName: Build and Test
+    jobs:
+      - job: BuildJob
+        displayName: Maven Build
+        steps:
+          - task: Maven@4
+            displayName: Build with Maven
+            inputs:
+              mavenPomFile: pom.xml
+              goals: clean package -DskipTests
+              javaHomeOption: JDKVersion
+              jdkVersionOption: 17
+              publishJUnitResults: false
+
+  - stage: Docker
+    displayName: Docker Build and Push
+    dependsOn: Build
+    jobs:
+      - job: DockerJob
+        displayName: Build and Push Docker Image
+        steps:
+          - task: Docker@2
+            displayName: Build Docker Image
+            inputs:
+              command: build
+              dockerfile: Dockerfile
+              tags: |
+                $(DOCKER_HUB_USERNAME)/$(IMAGE_NAME):$(IMAGE_TAG)
+                $(DOCKER_HUB_USERNAME)/$(IMAGE_NAME):latest
+
+          - task: Docker@2
+            displayName: Push to Docker Hub
+            inputs:
+              command: push
+              containerRegistry: DockerHubConnection
+              repository: $(DOCKER_HUB_USERNAME)/$(IMAGE_NAME)
+              tags: |
+                $(IMAGE_TAG)
+                latest
